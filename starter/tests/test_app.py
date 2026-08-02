@@ -53,6 +53,35 @@ def test_new_game_route_uses_selected_difficulty(client, monkeypatch):
     assert captured['clues'] == 40
 
 
+def test_hint_route_fills_one_empty_cell(client):
+    client.get('/new?clues=35')
+    puzzle_before = copy.deepcopy(app_module.CURRENT['puzzle'])
+
+    response = client.get('/hint')
+
+    assert response.status_code == 200
+    payload = response.get_json()
+    assert payload['hint'] is not None
+    hint = payload['hint']
+    assert puzzle_before[hint['row']][hint['col']] == 0
+    assert app_module.CURRENT['puzzle'][hint['row']][hint['col']] == hint['value']
+    assert app_module.CURRENT['puzzle'][hint['row']][hint['col']] == app_module.CURRENT['solution'][hint['row']][hint['col']]
+
+
+def test_validate_cell_route_reports_invalid_value(client):
+    client.get('/new?clues=35')
+    solution = app_module.CURRENT['solution']
+    board = [[0] * 9 for _ in range(9)]
+    wrong_value = 1 if solution[0][0] != 1 else 2
+
+    response = client.post('/validate-cell', json={'board': board, 'row': 0, 'col': 0, 'value': wrong_value})
+
+    assert response.status_code == 200
+    payload = response.get_json()
+    assert payload['valid'] is False
+    assert payload['incorrect'] is True
+
+
 def test_check_route_returns_error_when_no_game_exists(client):
     response = client.post('/check', json={'board': [[0] * 9 for _ in range(9)]})
 

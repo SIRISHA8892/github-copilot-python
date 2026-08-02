@@ -37,3 +37,10 @@ def test_is_safe_detects_conflicts_in_rows_columns_and_boxes():
     board[1][1] = 1
 
     assert sudoku_logic.is_safe(board, 1, 1, 1) is False
+
+
+def test_count_solutions_returns_single_solution_for_unique_puzzle():
+    puzzle, solution = sudoku_logic.generate_puzzle(35)
+
+    assert sudoku_logic.count_solutions(puzzle) == 1
+    assert puzzle != solution

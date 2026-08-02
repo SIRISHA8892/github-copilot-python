@@ -38,6 +38,21 @@ def test_new_game_route_returns_a_valid_puzzle(client):
     assert len(app_module.CURRENT['solution']) == 9
 
 
+def test_new_game_route_uses_selected_difficulty(client, monkeypatch):
+    captured = {}
+
+    def fake_generate_puzzle(clues):
+        captured['clues'] = clues
+        return [[0] * 9 for _ in range(9)], [[1] * 9 for _ in range(9)]
+
+    monkeypatch.setattr(app_module.sudoku_logic, 'generate_puzzle', fake_generate_puzzle)
+
+    response = client.get('/new?difficulty=easy')
+
+    assert response.status_code == 200
+    assert captured['clues'] == 40
+
+
 def test_check_route_returns_error_when_no_game_exists(client):
     response = client.post('/check', json={'board': [[0] * 9 for _ in range(9)]})
 
